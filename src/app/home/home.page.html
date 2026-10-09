@@ -1,0 +1,172 @@
+
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Guía de Restaurantes Euskadi</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargarDatos()">
+        Cargar datos
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  @if (!hayDatos()) {
+    <ion-item>
+      <ion-label>
+        Pulsa Cargar Datos para ver los restaurantes disponibles.
+        Una vez cargados, podrás filtrar por nombre, territorio y localidad.
+      </ion-label>
+    </ion-item>
+  }
+
+  <!-- Filtros -->
+  <ion-grid>
+    <ion-row class="ion-align-items-center ion-justify-content-start">
+
+      <!-- Búsqueda por nombre -->
+      <ion-col size="12" size-md="3">
+        <ion-item>
+          <ion-input
+            label="Buscar"
+            labelPlacement="start"
+            placeholder="Nombre del restaurante"
+            [value]="textoBusqueda()"
+            [disabled]="!hayDatos()"
+            (ionInput)="textoBusqueda.set($event.detail.value ?? '')">
+          </ion-input>
+        </ion-item>
+      </ion-col>
+
+      <!-- Territorio -->
+      <ion-col size="12" size-md="3">
+        <ion-item>
+          <ion-select
+            label="Territorio"
+            labelPlacement="start"
+            placeholder="Todos"
+            [value]="territorioSeleccionado()"
+            [disabled]="!hayDatos()"
+            (ionChange)="onTerritorioChange($event.detail.value)">
+
+            <ion-select-option value="">Todos</ion-select-option>
+
+            @for (t of territoriosFiltrados(); track t) {
+              <ion-select-option [value]="t">
+                {{ t }}
+              </ion-select-option>
+            }
+
+          </ion-select>
+        </ion-item>
+      </ion-col>
+
+      <!-- Localidad -->
+      <ion-col size="12" size-md="6">
+        <ion-item>
+          <ion-select
+            label="Localidad"
+            labelPlacement="start"
+            placeholder="Todas"
+            [multiple]="true"
+            cancelText="Cancelar"
+            okText="Aceptar"
+            [value]="localidadesSeleccionadas()"
+            [title]="localidadesSeleccionadas().length > 0 ? localidadesSeleccionadas().join(', ') : 'Todas'"
+            [disabled]="!hayDatos()"
+            (ionChange)="onLocalidadesChange($event.detail.value)">
+
+            @for (loc of localidadesFiltradasPorTerritorio(); track loc) {
+              <ion-select-option [value]="loc">
+                {{ loc }}
+              </ion-select-option>
+            }
+
+          </ion-select>
+        </ion-item>
+      </ion-col>
+
+    </ion-row>
+  </ion-grid>
+
+  <!-- Contador de resultados -->
+  @if (hayDatos()) {
+    <ion-item>
+      <ion-label>
+        Mostrando {{ restaurantesFiltrados().length }} de
+        {{ restaurantesCargados().length }} restaurantes
+
+        @if (restaurantesFiltrados().length === 0 && hayFiltrosActivos()) {
+          · Prueba a cambiar los filtros
+        }
+      </ion-label>
+    </ion-item>
+  }
+
+  <!-- Tabla de restaurantes -->
+  @if (restaurantesFiltrados().length > 0) {
+    <div class="table-wrapper">
+      <table class="restaurantes-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Localidad</th>
+            <th>Dirección</th>
+            <th>Teléfono</th>
+            <th>Territorio</th>
+            <th>Web</th>
+            <th>Estrellas Michelin</th>
+            <th>Soles Repsol</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (r of restaurantesFiltrados(); track r.documentName) {
+            <tr>
+              <td>{{ r.documentName }}</td>
+              <td>{{ r.locality }}</td>
+              <td>{{ r.address }}</td>
+              <td>{{ r.phone }}</td>
+              <td>{{ r.territory }}</td>
+
+              <td>
+  @if (r.web) {
+    <a [href]="r.web" target="_blank" [title]="r.web">
+      Ver web
+    </a>
+  } @else {
+    -
+  }
+</td>
+
+              <td>
+                {{ estrellasMichelin(r) > 0 ? estrellasMichelin(r) : '-' }}
+              </td>
+
+              <td>
+                {{ repsolSoles(r) > 0 ? repsolSoles(r) : '-' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    @if (hayDatos()) {
+      <ion-item color="warning">
+        <ion-label>
+          Ningún restaurante coincide con los filtros seleccionados.
+        </ion-label>
+        <ion-button
+          slot="end"
+          fill="clear"
+          (click)="limpiarTodosFiltros()">
+          Limpiar filtros
+        </ion-button>
+      </ion-item>
+    }
+  }
+
+</ion-content>
+```
